@@ -3,15 +3,48 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import random
 import numpy as np
+import tensorflow as tf
 
 
 font_size = 28
 font_folder = os.path.join('.', 'fonts')
 
 IMAGE_HEIGHT = 24
-IMAGE_WIDTH = 97
+IMAGE_WIDTH = 80
 MAX_CAPTCHA = 4
 CHAR_SET_LEN = 10
+
+
+# def tfdata_generator(images, labels, is_training, batch_size=128):
+#   '''Construct a data generator using tf.Dataset'''
+
+#   # def preprocess_fn(image, label):
+#   #   '''A transformation function to preprocess raw data
+#   #   into trainable input. '''
+#   #   x = tf.reshape(tf.cast(image, tf.float32), (28, 28, 1))
+#   #   y = tf.one_hot(tf.cast(label, tf.uint8), _NUM_CLASSES)
+#   #   return x, y
+
+#   dataset = tf.data.Dataset.from_tensor_slices((images, labels))
+#   if is_training:
+#     dataset = dataset.shuffle(1000)  # depends on sample size
+
+#   # Transform and batch data at the same time
+#   dataset = dataset.apply(tf.contrib.data.map_and_batch(
+#       preprocess_fn, batch_size,
+#       num_parallel_batches=4,  # cpu cores
+#       drop_remainder=True if is_training else False))
+#   dataset = dataset.repeat()
+#   dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+
+#   return dataset
+
+def gen_dataset(batch_size=128):
+  return tf.data.Dataset.from_generator(gen, output_types=(tf.int32, tf.int32))
+
+
+def gen(batch_size=128):
+  yield gen_next_batch(batch_size)
 
 
 def convert2gray(img):
@@ -51,13 +84,13 @@ def gen_captcha(text):
       font_folder, random.choice(os.listdir(font_folder)))
   font = ImageFont.truetype(size=font_size, font=font_file)
 
-  image = Image.new(mode='RGB', size=(97, 24), color='#FFFFFF')
+  image = Image.new(mode='RGB', size=(IMAGE_WIDTH, IMAGE_HEIGHT), color='#FFFFFF')
   draw = ImageDraw.Draw(im=image)
 
   size = draw.textsize(text, font=font)
   offset = font.getoffset(text)
 
-  draw.text(xy=(0, 0-offset[1] + random.randint(0, 24-size[1]+offset[1])),
+  draw.text(xy=(0, 0-offset[1] + random.randint(0, IMAGE_HEIGHT-size[1]+offset[1])),
             text=text, fill='#FF0000', font=font)
 
   # for i in range(10):
@@ -68,8 +101,12 @@ def gen_captcha(text):
 
 
 def main():
-  batch_x, batch_y = gen_next_batch()
-  print(batch_x.shape, batch_y.shape)
+  # batch_x, batch_y = gen_next_batch()
+
+  tf.enable_eager_execution()
+
+  tt = gen_dataset()
+  print(type(tt))
   # for x in range(10):
   #     gen_captcha('1256')
 

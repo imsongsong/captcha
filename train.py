@@ -1,10 +1,10 @@
 # coding=utf-8
 import tensorflow as tf
 from tensorflow import keras
-from gen_captcha import gen_next_batch
+from gen_captcha import gen_next_batch, gen_dataset
 
 IMAGE_HEIGHT = 24
-IMAGE_WIDTH = 97
+IMAGE_WIDTH = 80
 MAX_CAPTCHA = 4
 CHAR_SET_LEN = 10
 
@@ -34,11 +34,12 @@ def create_model(input_shape, num_classes):
 
 
 def main():
-  x_train, y_train = gen_next_batch(12800)
+  # x_train, y_train = gen_next_batch(12800)
   x_test, y_test = gen_next_batch(1280)
 
-  model = create_model((IMAGE_HEIGHT, IMAGE_WIDTH, 1), MAX_CAPTCHA*CHAR_SET_LEN)
-  model.fit(x_train, y_train, batch_size=64, epochs=1200, verbose=1, validation_data=(x_test, y_test))
+  model = create_model((IMAGE_HEIGHT, IMAGE_WIDTH, 1), MAX_CAPTCHA * CHAR_SET_LEN)
+  # model.fit(x_train, y_train, batch_size=64, epochs=1200, verbose=1, validation_data=(x_test, y_test))
+  model.fit(gen_dataset().make_one_shot_iterator(), steps_per_epoch=100, verbose=1, validation_data=(x_test, y_test))
   score = model.evaluate(x_test, y_test, verbose=0)
 
   # 輸出結果
