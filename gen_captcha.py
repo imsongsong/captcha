@@ -15,68 +15,67 @@ CHAR_SET_LEN = 10
 
 
 def convert2gray(img):
-    if len(img.shape) > 2:
-        gray = np.mean(img, -1)
-        return gray
-    else:
-        return img
+  if len(img.shape) > 2:
+    gray = np.mean(img, -1)
+    return gray
+  else:
+    return img
 
 
 def gen_next_batch(batch_size=100):
-    batch_x = np.zeros([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
-    batch_y = np.zeros([batch_size, MAX_CAPTCHA*CHAR_SET_LEN])
+  batch_x = np.zeros([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
+  batch_y = np.zeros([batch_size, MAX_CAPTCHA*CHAR_SET_LEN])
 
-    for i in range(batch_size):
-        number = random.randint(0, 9999)
-        image = gen_captcha("%04d" % number)
+  for i in range(batch_size):
+    number = random.randint(0, 9999)
+    image = gen_captcha("%04d" % number)
 
-        # 转成灰度图片，因为颜色对于提取字符形状是没有意义的
-        image = convert2gray(image)
-        # batch_x[i, :] = image / 255
-        batch_x[i, :] = (image.flatten() /
-                         255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, 1))
-        # print(tt.shape)
+    # 转成灰度图片，因为颜色对于提取字符形状是没有意义的
+    image = convert2gray(image)
+    # batch_x[i, :] = image / 255
+    batch_x[i, :] = (image.flatten() / 255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, 1))
+    # print(tt.shape)
 
-        arr = np.zeros(MAX_CAPTCHA * CHAR_SET_LEN, dtype=np.int8)
-        arr[number // 1000 % 10] = 1
-        arr[10+number // 100 % 10] = 1
-        arr[20+number // 10 % 10] = 1
-        arr[30+number % 10] = 1
-        batch_y[i, :] = arr
+    arr = np.zeros(MAX_CAPTCHA * CHAR_SET_LEN, dtype=np.int8)
+    arr[number // 1000 % 10] = 1
+    arr[10+number // 100 % 10] = 1
+    arr[20+number // 10 % 10] = 1
+    arr[30+number % 10] = 1
+    batch_y[i, :] = arr
 
-    return batch_x, batch_y
+  return batch_x, batch_y
 
 
 def gen_captcha(text):
-    font_file = os.path.join(
-        font_folder, random.choice(os.listdir(font_folder)))
-    font = ImageFont.truetype(size=font_size, font=font_file)
+  font_file = os.path.join(
+      font_folder, random.choice(os.listdir(font_folder)))
+  font = ImageFont.truetype(size=font_size, font=font_file)
 
-    image = Image.new(mode='RGB', size=(97, 24), color='#FFFFFF')
-    draw = ImageDraw.Draw(im=image)
+  image = Image.new(mode='RGB', size=(97, 24), color='#FFFFFF')
+  draw = ImageDraw.Draw(im=image)
 
-    size = draw.textsize(text, font=font)
-    offset = font.getoffset(text)
+  size = draw.textsize(text, font=font)
+  offset = font.getoffset(text)
 
-    draw.text(xy=(0, 0-offset[1] + random.randint(0, 24-size[1]+offset[1])),
-              text=text, fill='#FF0000', font=font)
+  draw.text(xy=(0, 0-offset[1] + random.randint(0, 24-size[1]+offset[1])),
+            text=text, fill='#FF0000', font=font)
 
-    for i in range(10):
-        draw.line(xy=[random.randint(0, 97), random.randint(
-            0, 24), random.randint(0, 97), random.randint(0, 24)], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+  # for i in range(10):
+  #     draw.line(xy=[random.randint(0, 97), random.randint(
+  #         0, 24), random.randint(0, 97), random.randint(0, 24)], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
 
-    return np.asarray(image)
+  return np.asarray(image)
 
 
 def main():
-    batch_x, batch_y = gen_next_batch()
-    print(batch_x.shape, batch_y.shape)
-    # for x in range(10):
-    #     gen_captcha('1256')
+  batch_x, batch_y = gen_next_batch()
+  print(batch_x.shape, batch_y.shape)
+  # for x in range(10):
+  #     gen_captcha('1256')
 
 
 if __name__ == '__main__':
-    main()
+  main()
 
 # from captcha.image import ImageCaptcha  # pip install captcha
 # import numpy as np
