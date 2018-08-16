@@ -4,6 +4,7 @@ import os
 import random
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 
 font_size = 28
@@ -11,6 +12,7 @@ font_folder = os.path.join('.', 'fonts')
 
 IMAGE_HEIGHT = 24
 IMAGE_WIDTH = 80
+IMAGE_DEPTH = 1
 MAX_CAPTCHA = 4
 CHAR_SET_LEN = 10
 
@@ -40,11 +42,14 @@ CHAR_SET_LEN = 10
 #   return dataset
 
 def gen_dataset(batch_size=128):
-  return tf.data.Dataset.from_generator(gen, output_types=(tf.int32, tf.int32))
+  return tf.data.Dataset.from_generator(gen, (tf.int32, tf.int32), (tf.TensorShape((batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH)), tf.TensorShape((batch_size, MAX_CAPTCHA*CHAR_SET_LEN))))
 
 
 def gen(batch_size=128):
-  yield gen_next_batch(batch_size)
+  # return (gen_next_batch(batch_size))
+  while True:
+    yield gen_next_batch(batch_size)
+  # yield(x, y)
 
 
 def convert2gray(img):
@@ -55,9 +60,9 @@ def convert2gray(img):
     return img
 
 
-def gen_next_batch(batch_size=100):
-  batch_x = np.zeros([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
-  batch_y = np.zeros([batch_size, MAX_CAPTCHA*CHAR_SET_LEN])
+def gen_next_batch(batch_size=128):
+  batch_x = np.zeros([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH], np.float32)
+  batch_y = np.zeros([batch_size, MAX_CAPTCHA*CHAR_SET_LEN], np.int8)
 
   for i in range(batch_size):
     number = random.randint(0, 9999)
@@ -65,9 +70,11 @@ def gen_next_batch(batch_size=100):
 
     # 转成灰度图片，因为颜色对于提取字符形状是没有意义的
     image = convert2gray(image)
+
     # batch_x[i, :] = image / 255
-    batch_x[i, :] = (image.flatten() / 255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, 1))
+    batch_x[i, :] = (image.flatten() / 255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH))
     # print(tt.shape)
+    # batch_x[i, :] = image
 
     arr = np.zeros(MAX_CAPTCHA * CHAR_SET_LEN, dtype=np.int8)
     arr[number // 1000 % 10] = 1
@@ -90,8 +97,7 @@ def gen_captcha(text):
   size = draw.textsize(text, font=font)
   offset = font.getoffset(text)
 
-  draw.text(xy=(0, 0-offset[1] + random.randint(0, IMAGE_HEIGHT-size[1]+offset[1])),
-            text=text, fill='#FF0000', font=font)
+  draw.text(xy=(0, 0-offset[1] + random.randint(0, IMAGE_HEIGHT-size[1]+offset[1])), text=text, fill='#FF0000', font=font)
 
   # for i in range(10):
   #     draw.line(xy=[random.randint(0, 97), random.randint(
@@ -101,14 +107,64 @@ def gen_captcha(text):
 
 
 def main():
+  number = random.randint(0, 9999)
+
+  # arr = np.zeros(MAX_CAPTCHA * CHAR_SET_LEN, dtype=np.int8)
+  # arr[number // 1000 % 10] = 1
+  # arr[10+number // 100 % 10] = 1
+  # arr[20+number // 10 % 10] = 1
+  # arr[30+number % 10] = 1
+
+  # print(arr)
+
+  image = gen_captcha("%04d" % number)
+  print(image.shape)
+  image = convert2gray(image)
+  print(image.shape)
+  # image = np.hstack((image, image, image))
+  # print(image.shape)
+
+  Image.fromarray(image).show()
+
+  # 转成灰度图片，因为颜色对于提取字符形状是没有意义的
+  # print(image[0][0])
+  # image = convert2gray(image)
+  # # batch_x[i, :] = image / 255
+  # r = (image.flatten() / 255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH))
+  # print(r)
+
+  # x = np.arange(4).reshape(-1, 1).astype('float32')
+  # ds_x = tf.data.Dataset.from_tensor_slices(x).repeat().batch(4)
+  # it_x = ds_x.make_one_shot_iterator()
+
+  # y = np.arange(5, 9).reshape(-1, 1).astype('float32')
+  # ds_y = tf.data.Dataset.from_tensor_slices(y).repeat().batch(4)
+  # it_y = ds_y.make_one_shot_iterator()
+
+  # input_vals = keras.layers.Input(tensor=it_x.get_next())
+  # output = keras.layers.Dense(1, activation='relu')(input_vals)
+  # model = keras.Model(inputs=input_vals, outputs=output)
+  # model.compile('rmsprop', 'mse', target_tensors=[it_y.get_next()])
+  # model.fit(steps_per_epoch=1, epochs=5, verbose=2)
+
+  # ds = tf.data.Dataset.from_generator(gen, (tf.int32, tf.int32), (tf.TensorShape((128, 24, 80, 1)), tf.TensorShape((128, 40))))
+  # x, y = ds.make_one_shot_iterator().get_next()
+  # print(x, y)
+
+  # value = ds.make_one_shot_iterator().get_next()
+  # with tf.Session() as sess:
+  #   # (sess.run(value))  # (1, array([1]))
+  #   print(sess.run(value))  # (2, array([1, 1]))
+
   # batch_x, batch_y = gen_next_batch()
 
-  tf.enable_eager_execution()
-
-  tt = gen_dataset()
-  print(type(tt))
-  # for x in range(10):
-  #     gen_captcha('1256')
+  # tf.enable_eager_execution()
+  # tt = gen_dataset()
+  # tt = tt.make_one_shot_iterator()
+  # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  # print(tt)
+  # # for x in range(10):
+  # #     gen_captcha('1256')
 
 
 if __name__ == '__main__':
