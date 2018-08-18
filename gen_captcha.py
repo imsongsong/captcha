@@ -45,7 +45,7 @@ def gen_dataset(batch_size=128):
   return tf.data.Dataset.from_generator(gen, (tf.int32, tf.int32), (tf.TensorShape((batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH)), tf.TensorShape((batch_size, MAX_CAPTCHA*CHAR_SET_LEN))))
 
 
-def gen(batch_size=128):
+def gen(batch_size=64):
   # return (gen_next_batch(batch_size))
   while True:
     yield gen_next_batch(batch_size)

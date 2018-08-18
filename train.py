@@ -12,21 +12,21 @@ CHAR_SET_LEN = 10
 
 def create_model(input_shape, num_classes):
   model = keras.Sequential()
-  model.add(keras.layers.Conv2D(32, kernel_size=(5, 5), strides=(1, 1), activation='relu', input_shape=input_shape, padding='SAME'))
+  model.add(keras.layers.Conv2D(32, kernel_size=(3, 3), strides=(1, 1), activation='relu', input_shape=input_shape, padding='SAME'))
   model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='SAME'))
-  # model.add(keras.layers.Dropout(0.4))
+  # model.add(keras.layers.Dropout(0.95))
 
-  model.add(keras.layers.Conv2D(64, kernel_size=(5, 5), strides=(1, 1), activation='relu', padding='SAME'))
+  model.add(keras.layers.Conv2D(64, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='SAME'))
   model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='SAME'))
-  # model.add(keras.layers.Dropout(0.4))
+  # model.add(keras.layers.Dropout(0.95))
 
-  # model.add(keras.layers.Conv2D(64, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='SAME'))
-  # model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='SAME'))
-  # model.add(keras.layers.Dropout(0.4))
+  model.add(keras.layers.Conv2D(64, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='SAME'))
+  model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='SAME'))
+  model.add(keras.layers.Dropout(0.05))
 
   model.add(keras.layers.Flatten())
-  model.add(keras.layers.Dense(1000, activation='relu'))
-  # model.add(keras.layers.Dropout(0.4))
+  model.add(keras.layers.Dense(1024, activation='relu'))
+  # model.add(keras.layers.Dropout(0.05))
 
   model.add(keras.layers.Dense(num_classes, activation='softmax'))
 
@@ -54,11 +54,11 @@ def main():
 
   model = create_model((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH), MAX_CAPTCHA * CHAR_SET_LEN)
   # model.fit(x_train, y_train, batch_size=64, epochs=1200, verbose=1, validation_data=(x_test, y_test))
-  x_train, y_train = gen_dataset().make_one_shot_iterator().get_next()
+  x_train, y_train = gen_dataset(64).make_one_shot_iterator().get_next()
   x_val, y_val = gen_dataset().make_one_shot_iterator().get_next()
   x_test, y_test = gen_dataset().make_one_shot_iterator().get_next()
 
-  model.fit(x_train, y_train, steps_per_epoch=100, epochs=100, verbose=1)
+  model.fit(x_train, y_train, steps_per_epoch=50, epochs=1000, verbose=1)
   score = model.evaluate(x_test, y_test, verbose=0)
 
   # 輸出結果
