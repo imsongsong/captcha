@@ -28,37 +28,29 @@ def create_model(input_shape, num_classes):
   model.add(keras.layers.Dense(1024, activation='relu'))
   # model.add(keras.layers.Dropout(0.05))
 
-  model.add(keras.layers.Dense(num_classes, activation='softmax'))
+  model.add(keras.layers.Dense(num_classes, activation='sigmoid'))
+  model.compile('adadelta', loss='binary_crossentropy', metrics=['accuracy'])
+  # model.compile(tf.train.AdamOptimizer(learning_rate=0.001), loss=tf.keras.losses.categorical_crossentropy, metrics=['accuracy'])
+  # model.compile(tf.train.AdamOptimizer(learning_rate=0.001), loss=tf.keras.losses.binary_crossentropy, metrics=['accuracy'])
 
-  model.compile(loss=tf.keras.losses.categorical_crossentropy, optimizer=tf.train.AdamOptimizer(learning_rate=0.001), metrics=['accuracy'])
+  from keras.utils.vis_utils import plot_model
+  plot_model(model, to_file='Model/model.png', show_shapes=True)
+
   return model
 
 
 def main():
-  # x = np.arange(4).reshape(-1, 1).astype('float32')
-  # ds_x = Dataset.from_tensor_slices(x).repeat().batch(4)
-  # it_x = ds_x.make_one_shot_iterator()
-
-  # y = np.arange(5, 9).reshape(-1, 1).astype('float32')
-  # ds_y = Dataset.from_tensor_slices(y).repeat().batch(4)
-  # it_y = ds_y.make_one_shot_iterator()
-
-  # input_vals = Input(tensor=it_x.get_next())
-  # output = Dense(1, activation='relu')(input_vals)
-  # model = Model(inputs=input_vals, outputs=output)
-  # model.compile('rmsprop', 'mse', target_tensors=[it_y.get_next()])
-  # model.fit(steps_per_epoch=1, epochs=5, verbose=2)
+  model = create_model((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH), MAX_CAPTCHA * CHAR_SET_LEN)
 
   # x_train, y_train = gen_next_batch(12800)
-  # x_test, y_test = gen_next_batch(1280)
+  # x_val, y_val = gen_next_batch(128)
+  # model.fit(x_train, y_train, batch_size=64, epochs=1200, verbose=1, validation_data=(x_val, y_val))
 
-  model = create_model((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH), MAX_CAPTCHA * CHAR_SET_LEN)
-  # model.fit(x_train, y_train, batch_size=64, epochs=1200, verbose=1, validation_data=(x_test, y_test))
   x_train, y_train = gen_dataset(64).make_one_shot_iterator().get_next()
-  x_val, y_val = gen_dataset().make_one_shot_iterator().get_next()
-  x_test, y_test = gen_dataset().make_one_shot_iterator().get_next()
-
+  # x_val, y_val = gen_dataset().make_one_shot_iterator().get_next()
   model.fit(x_train, y_train, steps_per_epoch=50, epochs=1000, verbose=1)
+
+  x_test, y_test = gen_next_batch(128)
   score = model.evaluate(x_test, y_test, verbose=0)
 
   # 輸出結果

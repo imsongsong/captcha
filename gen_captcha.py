@@ -68,13 +68,8 @@ def gen_next_batch(batch_size=128):
     number = random.randint(0, 9999)
     image = gen_captcha("%04d" % number)
 
-    # 转成灰度图片，因为颜色对于提取字符形状是没有意义的
     image = convert2gray(image)
-
-    # batch_x[i, :] = image / 255
     batch_x[i, :] = (image.flatten() / 255).reshape((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH))
-    # print(tt.shape)
-    # batch_x[i, :] = image
 
     arr = np.zeros(MAX_CAPTCHA * CHAR_SET_LEN, dtype=np.int8)
     arr[number // 1000 % 10] = 1
